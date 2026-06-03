@@ -14,7 +14,7 @@ temp
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 !.idea/dictionaries/
 !.idea/inspectionProfiles/
 !.idea/scopes/
