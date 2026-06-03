@@ -248,10 +248,9 @@ public class FixedSizeTextChunker implements ChunkingStrategy {
                 || prev == ':') return true;                                       // /i/nodes\n/...  ?\nutm=...
 
         // 或者下一段本身以 URL 结构符号开头
-        if (next == '/' || next == '?' || next == '&' || next == '=' || next == '#') return true;
+        return next == '/' || next == '?' || next == '&' || next == '=' || next == '#';
 
         // 其他情况更保守：不合并，保留换行
-        return false;
     }
 
     private boolean isListItemStart(String s, int i) {
@@ -264,10 +263,7 @@ public class FixedSizeTextChunker implements ChunkingStrategy {
         if (p == start) return false;
 
         // 数字后紧跟 '.' 或 '）' / ')' 也常见
-        if (p < s.length() && (s.charAt(p) == '.' || s.charAt(p) == '）' || s.charAt(p) == ')')) {
-            return true;
-        }
-        return false;
+        return p < s.length() && (s.charAt(p) == '.' || s.charAt(p) == '）' || s.charAt(p) == ')');
     }
 
     private boolean looksLikeUrlStart(String s, int i) {
