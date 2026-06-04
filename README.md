@@ -1,93 +1,25 @@
 # Tiny Ragent AI
 
-1. 模块化分层清晰
-   - framework：通用基础设施，无业务逻辑
-   - infra-ai：AI 模型集成层，独立可测试
-   - bootstrap：业务实现
-2. 配置外部化
-   - 所有阈值可配置（熔断、限流、检索）
-   - 环境变量注入敏感信息
-3. Spotless 代码规范
-   - 编译时自动格式化
-   - 统一 License Header
-4. 向量存储可切换
-   - PostgreSQL + pgvector 或 Milvus
-   - 配置项 rag.vector.type 切换
-
-![img.png](docs/images/liangdian.png)
-
 ## tiny parts
-
-### 已完成瘦身
 
 - ✅ 删除前端项目
 - ✅ 删除 MCP 模块
 - ✅ 减少模型服务提供商（仅保留硅基流动、阿里云百炼）
 - ✅ 向量数据库：移除 pgvector 依赖（仅保留 Milvus）
-
-### 待瘦身步骤
-
-#### 第一阶段：移除非核心功能模块
-
-| 步骤 | 操作 | 影响 | 保留原因 |
-|------|------|------|----------|
-| 1 | 删除 `admin/` 模块 | Dashboard 相关代码 | 非核心业务，监控可外部化 |
-| 2 | 删除 `rag/eval/` 模块 | 评测相关代码 | 仅用于离线评测 |
-| 3 | 删除 `ingestion/strategy/fetcher/FeishuFetcher.java` | 飞书文档获取 | 仅保留 LocalFileFetcher |
-| 4 | 删除 `ingestion/strategy/fetcher/S3Fetcher.java` | S3 文档获取 | 仅保留 LocalFileFetcher |
-| 5 | 删除 `ingestion/strategy/fetcher/HttpUrlFetcher.java` | HTTP URL 获取 | 仅保留 LocalFileFetcher |
-
-#### 第二阶段：简化 Ingestion Pipeline
-
-| 步骤 | 操作 | 说明 |
-|------|------|------|
-| 6 | 简化 Ingestion 节点 | 仅保留 ParserNode + ChunkerNode + IndexerNode |
-| 7 | 删除 EnhancerNode | LLM 增强可由业务层处理 |
-| 8 | 删除 EnricherNode | 元数据丰富可由业务层处理 |
-| 9 | 删除 `ingestion/prompt/` | 无需 Prompt 模板 |
-
-#### 第三阶段：简化 Knowledge 模块
-
-| 步骤 | 操作 | 说明 |
-|------|------|------|
-| 10 | 删除 `knowledge/schedule/` | 定时调度可外部触发 |
-| 11 | 删除 `knowledge/handler/RemoteFileFetcher.java` | 远程文件获取 |
-| 12 | 简化 Chunk 管理接口 | 仅保留核心 CRUD |
-
-#### 第四阶段：简化 Trace 模块
-
-| 步骤 | 操作 | 说明 |
-|------|------|------|
-| 13 | 删除 Trace 查询接口 | 仅保留写入，查询走日志系统 |
-| 14 | 删除 `rag/dao/entity/RagTraceNodeDO.java` 相关查询 | Trace 仅记录到日志 |
-
-#### 第五阶段：简化配置与依赖
-
-| 步骤 | 操作 | 说明 |
-|------|------|------|
-| 15 | 移除 RocketMQ 依赖 | 改用内存队列或 Redis Stream |
-| 16 | 移除 Milvus 依赖 | 仅保留 pgvector |
-| 17 | 移除 Tika 部分解析器 | 仅保留 PDF/Markdown 解析 |
-
-### 瘦身后保留的核心亮点
-
-| 亮点 | 说明 |
-|------|------|
-| 多路并行检索引擎 | SearchChannel 策略模式 + 动态启用 |
-| 模型路由与高容错 | 断路器三态机 + 优雅降级 |
-| 异步全链路追踪 | @RagTraceRoot/@RagTraceNode + TTL 透传 |
-| 分布式公平限流 | ZSet 排队 + Lua 原子操作 |
-| 知识库管理 | CRUD + 向量索引 |
-| 流式对话 | SSE 推送 + 取消句柄 |
-
-### 瘦身后预估收益
-
-- **代码量减少**：约 30-40%
-- **依赖减少**：移除 RocketMQ、Milvus、部分 Tika 解析器
-- **启动时间**：减少约 20%
-- **维护成本**：聚焦核心能力，减少边缘场景
+- ✅ 文档获取方式：删除 FeishuFetcher、S3Fetcher、HttpUrlFetcher（仅保留 LocalFileFetcher）
+- ✅ 简化 Ingestion Pipeline：删除 EnhancerNode、EnricherNode 节点
+- infra-ai 抽 routing 公共逻辑
 
 ## core parts
+
+| 亮点       | 说明                                   |
+|----------|--------------------------------------|
+| 多路并行检索引擎 | SearchChannel 策略模式 + 动态启用            |
+| 模型路由与高容错 | 断路器三态机 + 优雅降级                        |
+| 异步全链路追踪  | @RagTraceRoot/@RagTraceNode + TTL 透传 |
+| 分布式公平限流  | ZSet 排队 + Lua 原子操作                   |
+| 知识库管理    | CRUD + 向量索引                          |
+| 流式对话     | SSE 推送 + 取消句柄                        |
 
 ### 多路并行检索引擎架构
 
