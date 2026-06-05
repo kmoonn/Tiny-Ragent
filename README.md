@@ -8,7 +8,12 @@
 - ✅ 向量数据库：移除 pgvector 依赖（仅保留 Milvus）
 - ✅ 文档获取方式：删除 FeishuFetcher、S3Fetcher、HttpUrlFetcher（仅保留 LocalFileFetcher）
 - ✅ 简化 Ingestion Pipeline：删除 EnhancerNode、EnricherNode 节点
-- infra-ai 抽 routing 公共逻辑
+- infra-ai 抽 model routing 公共逻辑
+
+## add parts
+
+- 在 SearchChannel + PostProcessor 前增加 PreProcessor
+- 支持 Skills 调用
 
 ## core parts
 
