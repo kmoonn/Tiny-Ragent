@@ -44,3 +44,7 @@ dist/
 .env.local
 .ttadk/
 specs/doc_export/
+.claude/
+ai-plugin-lock.json
+.mcp.json
+ai-plugin.json

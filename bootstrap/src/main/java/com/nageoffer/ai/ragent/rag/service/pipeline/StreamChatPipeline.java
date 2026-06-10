@@ -76,8 +76,11 @@ public class StreamChatPipeline {
      * 执行流式对话管道
      */
     public void execute(StreamChatContext ctx) {
+        // 加载记忆
         loadMemory(ctx);
+        // 查询改写 / 拆分
         rewriteQuery(ctx);
+        // 意图识别
         resolveIntents(ctx);
 
         if (handleGuidance(ctx)) {

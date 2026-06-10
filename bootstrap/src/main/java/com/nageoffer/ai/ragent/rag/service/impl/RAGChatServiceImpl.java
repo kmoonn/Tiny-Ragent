@@ -51,6 +51,7 @@ public class RAGChatServiceImpl implements RAGChatService {
     public void streamChat(String question, String conversationId, Boolean deepThinking, SseEmitter emitter) {
         String actualConversationId = StrUtil.isBlank(conversationId) ? IdUtil.getSnowflakeNextIdStr() : conversationId;
         String taskId = IdUtil.getSnowflakeNextIdStr();
+        // 回调工厂
         StreamCallback callback = callbackFactory.createChatEventHandler(emitter, actualConversationId, taskId);
 
         chatQueueLimiter.enqueue(question, actualConversationId, emitter,
