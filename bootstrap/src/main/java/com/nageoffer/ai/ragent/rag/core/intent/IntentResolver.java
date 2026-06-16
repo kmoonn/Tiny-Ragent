@@ -50,12 +50,15 @@ public class IntentResolver {
 
     @RagTraceNode(name = "intent-resolve", type = "INTENT")
     public List<SubQuestionIntent> resolve(RewriteResult rewriteResult) {
+        // 检查是否存在子问题列表，没有则将改写后的问题作为唯一子问题
         List<String> subQuestions = CollUtil.isNotEmpty(rewriteResult.subQuestions())
                 ? rewriteResult.subQuestions()
                 : List.of(rewriteResult.rewrittenQuestion());
+        // 使用 CompletableFuture 对多个子问题进行异步意图分类
         List<CompletableFuture<SubQuestionIntent>> tasks = subQuestions.stream()
                 .map(q -> CompletableFuture.supplyAsync(
                         () -> {
+                            // 调用 classifyIntents() 进行意图分类，若失败则降级为空意图
                             try {
                                 return new SubQuestionIntent(q, classifyIntents(q));
                             } catch (Exception e) {
@@ -63,9 +66,11 @@ public class IntentResolver {
                                 return new SubQuestionIntent(q, List.of());
                             }
                         },
+                        // 使用自定义线程池 intentClassifyExecutor 执行。
                         intentClassifyExecutor
                 ))
                 .toList();
+        // 通过 join 方法获取结果
         List<SubQuestionIntent> subIntents = tasks.stream()
                 .map(CompletableFuture::join)
                 .toList();
@@ -89,7 +94,9 @@ public class IntentResolver {
     }
 
     private List<NodeScore> classifyIntents(String question) {
+        // 获取每个意图节点分数
         List<NodeScore> scores = intentClassifier.classifyTargets(question);
+        // 收集满足置信度分数的意图节点，同时限制最大意图数量
         return scores.stream()
                 .filter(ns -> ns.getScore() >= INTENT_MIN_SCORE)
                 .limit(MAX_INTENT_COUNT)

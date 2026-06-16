@@ -78,23 +78,27 @@ public class StreamChatPipeline {
     public void execute(StreamChatContext ctx) {
         // 加载记忆
         loadMemory(ctx);
-        // 查询改写 / 拆分
+        // 查询改写 / 拆分子问题
         rewriteQuery(ctx);
         // 意图识别
         resolveIntents(ctx);
 
+        // 检测用户问题的歧义性，判断是否需要追问用户澄清
         if (handleGuidance(ctx)) {
             return;
         }
+        // 检查是否只有系统意图
         if (handleSystemOnly(ctx)) {
             return;
         }
-
+        // 召回上下文
         RetrievalContext retrievalCtx = retrieve(ctx);
+        // 召回内容为空
         if (handleEmptyRetrieval(ctx, retrievalCtx)) {
             return;
         }
 
+        // 返回响应
         streamRagResponse(ctx, retrievalCtx);
     }
 
@@ -115,6 +119,7 @@ public class StreamChatPipeline {
     }
 
     private void resolveIntents(StreamChatContext ctx) {
+        // 子问题 ——> 子意图
         List<SubQuestionIntent> subIntents = intentResolver.resolve(ctx.getRewriteResult());
         ctx.setSubIntents(subIntents);
     }
@@ -171,7 +176,7 @@ public class StreamChatPipeline {
     }
 
     private void streamRagResponse(StreamChatContext ctx, RetrievalContext retrievalCtx) {
-        // 聚合所有意图用于 prompt 规划
+        // 聚合所有意图用于 Prompt 规划
         IntentGroup mergedGroup = intentResolver.mergeIntentGroup(ctx.getSubIntents());
 
         StreamCancellationHandle handle = streamLLMResponse(

@@ -54,8 +54,11 @@ public class RAGChatServiceImpl implements RAGChatService {
         // 回调工厂
         StreamCallback callback = callbackFactory.createChatEventHandler(emitter, actualConversationId, taskId);
 
+        // 限流队列
         chatQueueLimiter.enqueue(question, actualConversationId, emitter,
+                // 链路追踪
                 () -> traceRunner.run(question, actualConversationId, taskId, callback, traceAware -> {
+                    // 上下文组装
                     StreamChatContext ctx = StreamChatContext.builder()
                             .question(question)
                             .conversationId(actualConversationId)
@@ -64,6 +67,7 @@ public class RAGChatServiceImpl implements RAGChatService {
                             .userId(UserContext.getUserId())
                             .callback(traceAware)
                             .build();
+                    // 执行流水线
                     chatPipeline.execute(ctx);
                 }));
     }
