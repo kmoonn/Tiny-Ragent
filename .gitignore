@@ -48,3 +48,4 @@ specs/doc_export/
 ai-plugin-lock.json
 .mcp.json
 ai-plugin.json
+.DS_Store
